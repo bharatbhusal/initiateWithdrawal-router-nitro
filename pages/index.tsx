@@ -1,23 +1,32 @@
-import { useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
+import { useWriteContract } from "wagmi";
+import { abi } from "./abi";
 
 const Home: NextPage = () => {
-	const [srcToken, setSrcToken] = useState<string>("");
-	const [depositId, setDepositId] = useState<number>();
+	const { writeContractAsync } = useWriteContract();
+	const handleIDepositInfoUpdate = async (
+		srcToken: string,
+		depositId: number
+	) => {
+		const res = await writeContractAsync({
+			address: "0xF550605cb56fBBA5c0F0e01174CF4e707ce0C9Ca", //sepolia
+			abi,
+			functionName: "iDepositInfoUpdate",
+			args: [srcToken, 0, depositId, true],
+		});
 
-	const handleIDepositInfoUpdate = async () => {
-		console.log("Deposit Info Updated");
+		console.log("Deposit Info Updated", res);
 	};
 
 	const handleSubmit = async (event: any) => {
 		event.preventDefault();
-		setSrcToken(event.target.srcToken.value);
-		setDepositId(event.target.depositId.value);
-		handleIDepositInfoUpdate();
-		console.log(srcToken, depositId);
+		await handleIDepositInfoUpdate(
+			event.target.srcToken.value,
+			event.target.depositId.value
+		);
 	};
 	return (
 		<div className={styles.container}>
@@ -44,7 +53,7 @@ const Home: NextPage = () => {
 					<input type="text" id="srcToken" name="srcToken" />
 
 					<label htmlFor="depositId">DepositId :</label>
-					<input type="text" id="depositId" name="depositId" />
+					<input type="number" id="depositId" name="depositId" />
 
 					<button type="submit">Initiate Withdrawal</button>
 				</form>
